@@ -1,14 +1,13 @@
 package me.wonwoo.retrofit.adapter.smallrye;
 
-
-import io.smallrye.mutiny.subscription.UniEmitter;
+import io.smallrye.mutiny.subscription.MultiEmitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.util.function.Consumer;
 
-public class EnqueueEmitterConsumer<T> implements Consumer<UniEmitter<? super Response<T>>> {
+final class EnqueueEmitterConsumer<T> implements Consumer<MultiEmitter<? super Response<T>>> {
 
     private final Call<T> originalCall;
 
@@ -17,10 +16,10 @@ public class EnqueueEmitterConsumer<T> implements Consumer<UniEmitter<? super Re
     }
 
     @Override
-    public void accept(UniEmitter<? super Response<T>> uniEmitter) {
+    public void accept(MultiEmitter<? super Response<T>> multiEmitter) {
         Call<T> call = originalCall.clone();
-        CallCallback<T> callback = new CallCallback<>(call, uniEmitter);
-        uniEmitter.onTermination(callback);
+        CallCallback<T> callback = new CallCallback<>(call, multiEmitter);
+        multiEmitter.onTermination(callback);
         if (!callback.isDisposed()) {
             call.enqueue(callback);
         }
@@ -29,11 +28,11 @@ public class EnqueueEmitterConsumer<T> implements Consumer<UniEmitter<? super Re
 
     private static final class CallCallback<T> implements Callback<T>, Runnable {
         private final Call<?> call;
-        private final UniEmitter<? super Response<T>> observer;
+        private final MultiEmitter<? super Response<T>> observer;
         private volatile boolean disposed;
         boolean terminated = false;
 
-        CallCallback(Call<?> call, UniEmitter<? super Response<T>> observer) {
+        CallCallback(Call<?> call, MultiEmitter<? super Response<T>> observer) {
             this.call = call;
             this.observer = observer;
         }
@@ -43,8 +42,8 @@ public class EnqueueEmitterConsumer<T> implements Consumer<UniEmitter<? super Re
             if (disposed) return;
 
             try {
-                observer.complete(response);
-
+                observer.emit(response);
+                observer.complete();
                 if (!disposed) {
                     terminated = true;
                 }

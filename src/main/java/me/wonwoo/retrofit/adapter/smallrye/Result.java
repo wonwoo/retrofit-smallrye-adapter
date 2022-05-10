@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (C) 2015 Square, Inc.
  *

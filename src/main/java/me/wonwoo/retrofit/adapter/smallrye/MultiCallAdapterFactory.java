@@ -1,5 +1,6 @@
 package me.wonwoo.retrofit.adapter.smallrye;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import retrofit2.CallAdapter;
 import retrofit2.Response;
@@ -9,14 +10,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-public class UniCallAdapterFactory extends CallAdapter.Factory {
+public class MultiCallAdapterFactory extends CallAdapter.Factory {
 
     @Override
     public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
 
         Class<?> rawType = getRawType(returnType);
-        boolean isUnit = rawType == Uni.class;
-        if (!isUnit) {
+        boolean isUni = rawType == Uni.class;
+        if (!isUni && rawType != Multi.class) {
             return null;
         }
 
@@ -48,10 +49,10 @@ public class UniCallAdapterFactory extends CallAdapter.Factory {
             isBody = true;
         }
 
-        return new UniCallAdapter<>(responseType, isResult, isBody);
+        return new MultiCallAdapter<>(responseType, isResult, isBody, isUni);
     }
 
-    public static UniCallAdapterFactory create() {
-        return new UniCallAdapterFactory();
+    public static MultiCallAdapterFactory create() {
+        return new MultiCallAdapterFactory();
     }
 }

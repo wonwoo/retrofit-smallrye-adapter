@@ -1,22 +1,24 @@
 package me.wonwoo.retrofit.adapter.smallrye;
 
-import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.Multi;
 import retrofit2.Call;
 import retrofit2.CallAdapter;
 import retrofit2.Response;
 
 import java.lang.reflect.Type;
 
-public class UniCallAdapter<R> implements CallAdapter<R, Object> {
+public class MultiCallAdapter<R> implements CallAdapter<R, Object> {
 
     private final Type responseType;
     private final boolean isResult;
     private final boolean isBody;
+    private final boolean isUni;
 
-    UniCallAdapter(Type responseType, boolean isResult, boolean isBody) {
+    MultiCallAdapter(Type responseType, boolean isResult, boolean isBody, boolean isUni) {
         this.responseType = responseType;
         this.isBody = isBody;
         this.isResult = isResult;
+        this.isUni = isUni;
     }
 
     @Override
@@ -26,15 +28,19 @@ public class UniCallAdapter<R> implements CallAdapter<R, Object> {
 
     @Override
     public Object adapt(Call<R> call) {
-        Uni<Response<R>> emitter = Uni.createFrom().emitter(new EnqueueEmitterConsumer<>(call));
+        Multi<Response<R>> emitter = Multi.createFrom().emitter(new EnqueueEmitterConsumer<>(call));
 
-        Uni<?> uni;
+        Multi<?> uni;
         if (isResult) {
-            uni = new ResultUni<>(emitter);
+            uni = new ResultMulti<>(emitter);
         } else if (isBody) {
-            uni = new BodyUni<>(emitter);
+            uni = new BodyMulti<>(emitter);
         } else {
             uni = emitter;
+        }
+
+        if (isUni) {
+            return uni.toUni();
         }
 
         return uni;

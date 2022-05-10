@@ -32,7 +32,7 @@ class UniTests {
                 new Retrofit.Builder()
                         .baseUrl(server.url("/"))
                         .addConverterFactory(new StringConverterFactory())
-                        .addCallAdapterFactory(UniCallAdapterFactory.create())
+                        .addCallAdapterFactory(MultiCallAdapterFactory.create())
                         .build();
         service = retrofit.create(Service.class);
     }

@@ -19,7 +19,7 @@ class SmallryeCallAdapterFactoryTest {
 
     private static final Annotation[] NO_ANNOTATIONS = new Annotation[0];
 
-    private final CallAdapter.Factory factory = UniCallAdapterFactory.create();
+    private final CallAdapter.Factory factory = MultiCallAdapterFactory.create();
     private Retrofit retrofit;
 
     @BeforeEach
